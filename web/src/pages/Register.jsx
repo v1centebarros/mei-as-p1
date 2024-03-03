@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 import { Formik, Field, ErrorMessage, Form } from "formik";
-import { register } from "../../api/auth";
+import { doRegister } from "../../api/auth";
 import { useMutation } from "@tanstack/react-query";
 
 export const Register = () => {
@@ -13,7 +13,7 @@ export const Register = () => {
     })
 
     const registerMutation = useMutation({
-        mutationFn:(userData) => register(userData),
+        mutationFn:(userData) => doRegister(userData),
         onSuccess: (data) => {
             console.log('data', data)
         },

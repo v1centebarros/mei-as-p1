@@ -1,38 +1,55 @@
-import { createContext, useEffect, useContext } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import {createContext, useContext, useEffect, useMemo} from 'react';
+import {useAuth} from '../hooks/useAuth';
+import {useMutation} from "@tanstack/react-query";
+import {doLogin} from "../../api/auth.js";
 
 export const AuthContext = createContext({});
 
-export const AuthProvider = ({ children }) => {
-    const { login, isLogged } = useAuth();
+export const AuthProvider = ({children}) => {
+    const {login, isLogged, token, setToken,logout} = useAuth();
 
     useEffect(() => {
         const t = localStorage.getItem('token');
         if (t) {
-            login(t);
+            setToken(()=>t)
         }
     }, []);
 
-    const authCtx = {
-        login,
-        isLogged
-    }
-        
-    return (
-        <AuthContext.Provider value={authCtx}>
-            {children}
-        </AuthContext.Provider>
-    );
+    const loginMutation = useMutation({
+        mutationFn: (userData) => doLogin(userData),
+        onSuccess: (data) => {
+            console.log('data', data)
+            setToken(()=>data.token)
+            localStorage.setItem('token', data.token)
+        },
+        onError: (error) => {
+            console.log('error', error)
+        }
+    });
+
+    const authCtx = useMemo(() => {
+            return {
+                login,
+                logout,
+                isLogged,
+                token,
+                setToken,
+                loginMutation
+            }
+        }
+        , [token]);
+
+    return <AuthContext.Provider value={authCtx}>
+        {children}
+    </AuthContext.Provider>
 };
 
 export const useAuthContext = () => {
-    const context = useContext(AuthContext);
-
-    if (!context) {
-        throw new Error('useAuthContext must be used within an AuthProvider');
+    const context = useContext(AuthContext)
+    if (context === undefined) {
+        throw new Error('useAuthContext must be used within a AuthProvider')
     }
-
-    return context;
+    return context
 }
 
         

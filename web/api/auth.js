@@ -1,6 +1,6 @@
 import {api} from "./axio.js";
 
-export const register = async (user) => {
+export const doRegister = async (user) => {
     const response = await api.post('/Auth/register', user);
 
     if (response.status !== 200) {
@@ -9,7 +9,7 @@ export const register = async (user) => {
     return response.data;
 }
 
-export const login = async (user) => {
+export const doLogin = async (user) => {
     const response = await api.post('/Auth/login', user);
 
     if (response.status !== 200) {

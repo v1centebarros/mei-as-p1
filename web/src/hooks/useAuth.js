@@ -3,9 +3,8 @@ import { useState } from 'react';
 export const useAuth = () => {
     const [token, setToken] = useState(null);
 
-    const login = (t) => {
-        setToken(t);
-        localStorage.setItem('token', t);
+    const login = (token) => {
+        setToken(token);
     }
 
     const logout = () => {
@@ -14,13 +13,14 @@ export const useAuth = () => {
     }
 
     const isLogged = () => {
-        return token !== null;
+       return token !== null;
     }
 
     return {
-        token,
         login,
         logout,
-        isLogged
+        isLogged,
+        token,
+        setToken
     }
 }
