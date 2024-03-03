@@ -3,6 +3,7 @@ import { Base } from "../pages/Base";
 import { Home } from "../pages/Home";
 import { Login } from "../pages/Login";
 import { Register } from "../pages/Register";
+import { PrivateRoute } from "./PrivateRoute";
 
 
 
@@ -11,7 +12,7 @@ export default function Router() {
     const router = createBrowserRouter([
         {
             path: "/", element: <Base />, children: [
-                { index: true, element: <Home /> },
+                { index: true, element: <PrivateRoute component={Home}/> },
             ]
         },
         { path: "/login", element: <Login /> },

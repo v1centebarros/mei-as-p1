@@ -1,20 +1,26 @@
 import * as Yup from "yup";
 import { Formik, Field, ErrorMessage, Form } from "formik";
-import { login } from "../../api/auth";
 import { useMutation } from "@tanstack/react-query";
+import {useAuthContext} from "../contexts/Auth.jsx";
+import {login} from "../../api/auth.js";
+import {useNavigate} from "react-router-dom";
 
 
 export const Login = () => {
 
+    const navigate = useNavigate();
     const loginSchema = Yup.object().shape({
         email: Yup.string().email().required(),
         password: Yup.string().required()
     });
+    const { login: loginContext } = useAuthContext();
 
     const loginMutation = useMutation({
         mutationFn: (userData) => login(userData),
         onSuccess: (data) => {
             console.log('data', data)
+            loginContext(data.token)
+            navigate("/")
         },
         onError: (error) => {
             console.log('error', error)
