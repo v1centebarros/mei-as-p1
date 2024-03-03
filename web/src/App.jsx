@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query"
+import Router from "./utils/router"
 
 function App() {
+
+  const queryClient = new QueryClient()
   return (
-    <>
-      <h1 className='text-6xl'>Hello, World!</h1>
-    </>
+    <QueryClientProvider client={queryClient}>
+      <Router/>
+    </QueryClientProvider>
   )
 }
 
