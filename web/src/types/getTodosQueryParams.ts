@@ -1,0 +1,4 @@
+interface GetTodosQueryParams {
+    size: number;
+    
+}
