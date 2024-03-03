@@ -7,19 +7,19 @@ namespace api.Controllers {
 
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController(IUserAccount userAccount) : ControllerBase
+    public class AuthController(IUserAuth userAuth) : ControllerBase
     {
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserDTO userDTO)
         {
-            var response = await userAccount.CreateAccount(userDTO);
+            var response = await userAuth.Create(userDTO);
             return Ok(response);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDTO loginDTO)
         {
-            var response = await userAccount.Login(loginDTO);
+            var response = await userAuth.Login(loginDTO);
             return Ok(response);
         }
     }

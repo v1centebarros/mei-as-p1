@@ -65,7 +65,7 @@ builder.Services.AddSwaggerGen(options =>
 
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
-builder.Services.AddScoped<IUserAccount, AccountRepository>();
+builder.Services.AddScoped<IUserAuth, AuthRepository>();
 //Ending...
 var app = builder.Build();
 

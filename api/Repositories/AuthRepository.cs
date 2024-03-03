@@ -10,10 +10,10 @@ using static api.Models.DTOs.ServiceResponses;
 
 namespace api.Repositories
 {
-    public class AccountRepository(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration config) : IUserAccount
+    public class AuthRepository(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration config) : IUserAuth
     {
     
-        public async Task<GeneralResponse> CreateAccount(UserDTO userDTO)
+        public async Task<GeneralResponse> Create(UserDTO userDTO)
         {
             if (userDTO is null) return new GeneralResponse(false, "Model is empty");
             var newUser = new ApplicationUser()
