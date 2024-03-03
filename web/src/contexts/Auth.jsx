@@ -1,7 +1,7 @@
 import {createContext, useContext, useEffect, useMemo} from 'react';
 import {useAuth} from '../hooks/useAuth';
 import {useMutation} from "@tanstack/react-query";
-import {doLogin} from "../../api/auth.js";
+import {doLogin, doRegister} from "../../api/auth.js";
 
 export const AuthContext = createContext({});
 
@@ -18,7 +18,6 @@ export const AuthProvider = ({children}) => {
     const loginMutation = useMutation({
         mutationFn: (userData) => doLogin(userData),
         onSuccess: (data) => {
-            console.log('data', data)
             setToken(()=>data.token)
             localStorage.setItem('token', data.token)
         },
@@ -27,6 +26,16 @@ export const AuthProvider = ({children}) => {
         }
     });
 
+    const registerMutation = useMutation({
+        mutationFn:(userData) => doRegister(userData),
+        onSuccess: (data) => {
+            console.log('data', data)
+        },
+        onError: (error) => {
+            console.log('error', error)
+        }
+    })
+
     const authCtx = useMemo(() => {
             return {
                 login,
@@ -34,7 +43,8 @@ export const AuthProvider = ({children}) => {
                 isLogged,
                 token,
                 setToken,
-                loginMutation
+                loginMutation,
+                registerMutation
             }
         }
         , [token]);
