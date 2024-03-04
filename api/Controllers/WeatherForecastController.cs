@@ -1,47 +1,108 @@
-using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using api;
+using api.Data;
 
 namespace api.Controllers
-{[ApiController]
+{
     [Route("api/[controller]")]
+    [ApiController]
     public class WeatherForecastController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        private readonly AppDbContext _context;
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(AppDbContext context)
         {
-            _logger = logger;
+            _context = context;
         }
 
-        [HttpGet("admin")]
-        [Authorize(Roles = "Admin")]
-        public IEnumerable<WeatherForecast> GetForecastByAdmin()
+        // GET: api/WeatherForecast
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<WeatherForecast>>> GetWeatherForecast()
         {
-            return Enumerable.Range(1, 10).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+            return await _context.WeatherForecast.ToListAsync();
         }
 
-        [HttpGet("user")]
-        [Authorize(Roles = ("User,Admin"))]
-        public IEnumerable<WeatherForecast> GetForecastByUser()
+        // GET: api/WeatherForecast/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<WeatherForecast>> GetWeatherForecast(long id)
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            var weatherForecast = await _context.WeatherForecast.FindAsync(id);
+
+            if (weatherForecast == null)
             {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+                return NotFound();
+            }
+
+            return weatherForecast;
+        }
+
+        // PUT: api/WeatherForecast/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutWeatherForecast(long id, WeatherForecast weatherForecast)
+        {
+            if (id != weatherForecast.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(weatherForecast).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!WeatherForecastExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/WeatherForecast
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<WeatherForecast>> PostWeatherForecast(WeatherForecast weatherForecast)
+        {
+            _context.WeatherForecast.Add(weatherForecast);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetWeatherForecast", new { id = weatherForecast.Id }, weatherForecast);
+        }
+
+        // DELETE: api/WeatherForecast/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteWeatherForecast(long id)
+        {
+            var weatherForecast = await _context.WeatherForecast.FindAsync(id);
+            if (weatherForecast == null)
+            {
+                return NotFound();
+            }
+
+            _context.WeatherForecast.Remove(weatherForecast);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool WeatherForecastExists(long id)
+        {
+            return _context.WeatherForecast.Any(e => e.Id == id);
         }
     }
 }
