@@ -16,12 +16,18 @@ namespace api.Repositories
         public async Task<GeneralResponse> Create(UserDTO userDTO)
         {
             if (userDTO is null) return new GeneralResponse(false, "Model is empty");
+
             var newUser = new ApplicationUser()
             {
-                Name = userDTO.Name,
+                FullName = userDTO.FullName,
                 Email = userDTO.Email,
                 PasswordHash = userDTO.Password,
-                UserName = userDTO.Email
+                UserName = userDTO.Email,
+                TreatmentPlan = userDTO.TreatmentPlan,
+                PhoneNumber = userDTO.PhoneNumber,
+                MedicalRecordNumber = Guid.NewGuid().ToString(),
+                AccessCode = Guid.NewGuid().ToString(),
+
             };
             var user = await userManager.FindByEmailAsync(newUser.Email);
             if (user is not null) return new GeneralResponse(false, "User registered already");
@@ -62,7 +68,7 @@ namespace api.Repositories
                 return new LoginResponse(false, null!, "Invalid email/password");
 
             var getUserRole = await userManager.GetRolesAsync(getUser);
-            var userSession = new UserSession(getUser.Id, getUser.Name, getUser.Email, getUserRole.First());
+            var userSession = new UserSession(getUser.Id, getUser.FullName, getUser.Email,getUser.TreatmentPlan,getUser.MedicalRecordNumber,getUser.AccessCode, getUserRole.First());
             string token = GenerateToken(userSession);
             return new LoginResponse(true, token!, "Login completed");
         }
@@ -74,7 +80,7 @@ namespace api.Repositories
             var userClaims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Name, user.FullName),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role)
             };

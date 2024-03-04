@@ -7,12 +7,14 @@ namespace api.Models.DTOs
         public string? Id { get; set; } = string.Empty;
 
         [Required]
-        public string Name { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; } = string.Empty;
+
+
 
         [Required]
         [DataType(DataType.Password)]
@@ -22,5 +24,13 @@ namespace api.Models.DTOs
         [DataType(DataType.Password)]
         [Compare(nameof(Password))]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Text)]
+        public string TreatmentPlan { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Text)]
+        public string PhoneNumber { get; set; } = string.Empty;
     }
 }
