@@ -7,28 +7,32 @@ using api.Models.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using static api.Models.DTOs.ServiceResponses;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Repositories
 {
     public class AuthRepository(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration config) : IUserAuth
     {
-    
+
         public async Task<GeneralResponse> Create(UserDTO userDTO)
         {
             if (userDTO is null) return new GeneralResponse(false, "Model is empty");
+
+            var medicalRecord = new MedicalRecord
+            {
+                MedicalRecordNumber = Guid.NewGuid().ToString(),
+                TreatmentPlan = userDTO.TreatmentPlan,
+                DiagnosisDetails = userDTO.DiagnosisDetails,
+                AccessCode = Guid.NewGuid().ToString(),
+            };
 
             var newUser = new ApplicationUser()
             {
                 FullName = userDTO.FullName,
                 Email = userDTO.Email,
-                PasswordHash = userDTO.Password,
                 UserName = userDTO.Email,
-                TreatmentPlan = userDTO.TreatmentPlan,
                 PhoneNumber = userDTO.PhoneNumber,
-                DiagnosisDetails = userDTO.DiagnosisDetails,
-                MedicalRecordNumber = Guid.NewGuid().ToString(),
-                AccessCode = Guid.NewGuid().ToString(),
-
+                MedicalRecord = medicalRecord
             };
             var user = await userManager.FindByEmailAsync(newUser.Email);
             if (user is not null) return new GeneralResponse(false, "User registered already");
@@ -60,7 +64,8 @@ namespace api.Repositories
             if (loginDTO == null)
                 return new LoginResponse(false, null!, "Login container is empty");
 
-            var getUser = await userManager.FindByEmailAsync(loginDTO.Email);
+            //Get User and the Medical Record
+            var getUser = await userManager.Users.Include(x => x.MedicalRecord).FirstOrDefaultAsync(x => x.Email == loginDTO.Email);
             if (getUser is null)
                 return new LoginResponse(false, null!, "User not found");
 
@@ -69,7 +74,18 @@ namespace api.Repositories
                 return new LoginResponse(false, null!, "Invalid email/password");
 
             var getUserRole = await userManager.GetRolesAsync(getUser);
-            var userSession = new UserSession(getUser.Id, getUser.FullName, getUser.Email,getUser.TreatmentPlan,getUser.MedicalRecordNumber,getUser.AccessCode,getUser.DiagnosisDetails, getUserRole.First());
+
+
+            // Check if MedicalRecord is null
+            if (getUser.MedicalRecord == null)
+            {
+                // Handle the case where MedicalRecord is not set
+                // For example, you might want to return an error response
+                return new LoginResponse(false, null!, "Medical record not found");
+            }
+
+
+            var userSession = new UserSession(getUser.Id, getUser.FullName, getUser.Email, getUser.MedicalRecord.TreatmentPlan, getUser.MedicalRecord.MedicalRecordNumber, getUser.MedicalRecord.AccessCode, getUser.MedicalRecord.DiagnosisDetails, getUserRole.First());
             string token = GenerateToken(userSession);
             return new LoginResponse(true, token!, "Login completed");
         }
