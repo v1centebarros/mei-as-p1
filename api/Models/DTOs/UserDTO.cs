@@ -32,5 +32,9 @@ namespace api.Models.DTOs
         [Required]
         [DataType(DataType.Text)]
         public string PhoneNumber { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Text)]
+        public string DiagnosisDetails { get; set; } = string.Empty;
     }
 }

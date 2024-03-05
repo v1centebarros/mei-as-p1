@@ -25,6 +25,7 @@ namespace api.Repositories
                 UserName = userDTO.Email,
                 TreatmentPlan = userDTO.TreatmentPlan,
                 PhoneNumber = userDTO.PhoneNumber,
+                DiagnosisDetails = userDTO.DiagnosisDetails,
                 MedicalRecordNumber = Guid.NewGuid().ToString(),
                 AccessCode = Guid.NewGuid().ToString(),
 
@@ -68,7 +69,7 @@ namespace api.Repositories
                 return new LoginResponse(false, null!, "Invalid email/password");
 
             var getUserRole = await userManager.GetRolesAsync(getUser);
-            var userSession = new UserSession(getUser.Id, getUser.FullName, getUser.Email,getUser.TreatmentPlan,getUser.MedicalRecordNumber,getUser.AccessCode, getUserRole.First());
+            var userSession = new UserSession(getUser.Id, getUser.FullName, getUser.Email,getUser.TreatmentPlan,getUser.MedicalRecordNumber,getUser.AccessCode,getUser.DiagnosisDetails, getUserRole.First());
             string token = GenerateToken(userSession);
             return new LoginResponse(true, token!, "Login completed");
         }

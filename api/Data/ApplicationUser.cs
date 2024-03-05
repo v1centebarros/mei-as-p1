@@ -11,6 +11,8 @@ namespace api.Data
 
         public string? TreatmentPlan { get; set; }
 
+        public string? DiagnosisDetails { get; set; }
+
         public string? AccessCode { get; set; }
     }
 }
