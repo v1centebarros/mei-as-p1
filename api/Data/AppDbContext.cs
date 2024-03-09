@@ -1,3 +1,4 @@
+using api.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 namespace api.Data
@@ -6,5 +7,7 @@ namespace api.Data
     {
         public DbSet<MedicalRecord> MedicalRecords { get; set; } = default!;
         public DbSet<WeatherForecast> WeatherForecast { get; set; } = default!;
+
+        public DbSet<Patient> Patients { get; set; } = default!;
     }
 }

@@ -174,17 +174,11 @@ namespace api.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("FullName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("MedicalRecordId")
-                        .HasColumnType("int");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -215,8 +209,6 @@ namespace api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MedicalRecordId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -230,11 +222,9 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Data.MedicalRecord", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("AccessCode")
                         .IsRequired()
@@ -255,6 +245,24 @@ namespace api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MedicalRecords");
+                });
+
+            modelBuilder.Entity("api.Models.Patient", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MedicalRecordId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MedicalRecordId");
+
+                    b.ToTable("Patients");
                 });
 
             modelBuilder.Entity("api.WeatherForecast", b =>
@@ -327,13 +335,19 @@ namespace api.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("api.Data.ApplicationUser", b =>
+            modelBuilder.Entity("api.Models.Patient", b =>
                 {
-                    b.HasOne("api.Data.MedicalRecord", "MedicalRecord")
+                    b.HasOne("api.Data.ApplicationUser", "ApplicationUser")
                         .WithMany()
-                        .HasForeignKey("MedicalRecordId")
+                        .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("api.Data.MedicalRecord", "MedicalRecord")
+                        .WithMany()
+                        .HasForeignKey("MedicalRecordId");
+
+                    b.Navigation("ApplicationUser");
 
                     b.Navigation("MedicalRecord");
                 });
