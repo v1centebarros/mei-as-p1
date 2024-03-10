@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using api.Data;
 using api.Models.Contracts;
 using api.Models.DTOs;
@@ -25,6 +26,18 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> Get()
         {
+
+            //Access JWT token to get the role of the user
+            var role1 = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            Console.WriteLine(role1);
+
+            // run store procedure dbo.GetUserData
+            // var response = await _context.Database.SqlQuery<PatientResponse>($"EXECUTE dbo.GetUserData @role={role}").ToListAsync();
+            
+            // TODO: Mudar o role para corresponder a Helpdesk e User normal
+
+
+
             SqlParameter role = new SqlParameter("@role", "helpdesk");
             // run store procedure dbo.GetUserData 
             var response = await _context.Database.SqlQuery<PatientResponse>($"EXECUTE dbo.GetUserData @role={role}").ToListAsync();
