@@ -1,7 +1,5 @@
 import * as Yup from "yup";
 import { Formik, Field, ErrorMessage, Form } from "formik";
-import { doRegister } from "../../api/auth";
-import { useMutation } from "@tanstack/react-query";
 import {useAuthContext} from "../contexts/Auth.jsx";
 
 export const Register = () => {
