@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using api;
 using api.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
@@ -23,6 +18,7 @@ namespace api.Controllers
 
         // GET: api/WeatherForecast
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<WeatherForecast>>> GetWeatherForecast()
         {
             return await _context.WeatherForecast.ToListAsync();

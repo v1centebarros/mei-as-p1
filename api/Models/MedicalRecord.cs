@@ -7,10 +7,10 @@ namespace api.Data
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public string Id { get; set; }
-        public string MedicalRecordNumber { get; set; }
-        public string TreatmentPlan { get; set; }
-        public string DiagnosisDetails { get; set; }
-        public string AccessCode { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string MedicalRecordNumber { get; set; } = Guid.NewGuid().ToString();
+        public string TreatmentPlan { get; set; } = "No treatment plan";
+        public string DiagnosisDetails { get; set; } = "No diagnosis details";
+        public string AccessCode { get; set; } = Guid.NewGuid().ToString();
     }
 }
