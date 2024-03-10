@@ -2,10 +2,10 @@ CREATE OR ALTER PROCEDURE dbo.GetUserData
     @role NVARCHAR(50)
 AS
 BEGIN
-    IF @role = 'client'
+    IF @role = 'patient'
     BEGIN
         EXECUTE AS USER
-        = 'client';
+        = 'patient';
     END
     ELSE
     BEGIN
@@ -16,12 +16,16 @@ BEGIN
 
     SELECT 
         [dbo].[Patients].FullName, 
+        [dbo].[AspNetUsers].Email,
+        [dbo].[AspNetUsers].[PhoneNumber],
         [dbo].[MedicalRecords].DiagnosisDetails, 
         [dbo].[MedicalRecords].MedicalRecordNumber, 
         [dbo].[MedicalRecords].TreatmentPlan,
         [dbo].[MedicalRecords].AccessCode
         FROM [dbo].[Patients] INNER JOIN [dbo].[MedicalRecords] ON
-        [dbo].[Patients].MedicalRecordId = [dbo].[MedicalRecords].Id;
+        [dbo].[Patients].MedicalRecordId = [dbo].[MedicalRecords].Id
+        INNER JOIN [dbo].[AspNetUsers] ON
+        [dbo].[Patients].[Id] = [dbo].[AspNetUsers].[Id]
     REVERT;
 END;
 GO

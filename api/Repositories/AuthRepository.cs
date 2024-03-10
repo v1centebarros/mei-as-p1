@@ -65,16 +65,16 @@ namespace api.Repositories
 
         private async Task AssignRole(ApplicationUser user)
         {
-            var adminRoleExists = await _roleManager.RoleExistsAsync("Admin");
-            if (!adminRoleExists)
+            var helpdeskRoleExists = await _roleManager.RoleExistsAsync("helpdesk");
+            if (!helpdeskRoleExists)
             {
-                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                await _roleManager.CreateAsync(new IdentityRole("helpdesk"));
             }
 
-            var userRole = adminRoleExists ? "User" : "Admin";
-            if (userRole == "User" && !await _roleManager.RoleExistsAsync("User"))
+            var userRole = helpdeskRoleExists ? "patient" : "helpdesk";
+            if (userRole == "patient" && !await _roleManager.RoleExistsAsync("patient"))
             {
-                await _roleManager.CreateAsync(new IdentityRole("User"));
+                await _roleManager.CreateAsync(new IdentityRole("patient"));
             }
 
             await _userManager.AddToRoleAsync(user, userRole);
@@ -109,7 +109,7 @@ namespace api.Repositories
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.FullName ?? ""),
                 new Claim(ClaimTypes.Email, user.ApplicationUser.Email),
-                new Claim(ClaimTypes.Role, role ?? "User"), // Default to "User" if role is null
+                new Claim(ClaimTypes.Role, role ?? "patient"),
             };
 
             var tokenDescriptor = new JwtSecurityToken(

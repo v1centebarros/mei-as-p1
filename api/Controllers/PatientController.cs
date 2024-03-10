@@ -16,7 +16,7 @@ namespace api.Controllers
     public class PatientController : ControllerBase
     {
         private readonly AppDbContext _context;
-        
+
         public PatientController(AppDbContext context)
         {
             _context = context;
@@ -28,20 +28,10 @@ namespace api.Controllers
         {
 
             //Access JWT token to get the role of the user
-            var role1 = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-            Console.WriteLine(role1);
 
+            SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
             // run store procedure dbo.GetUserData
-            // var response = await _context.Database.SqlQuery<PatientResponse>($"EXECUTE dbo.GetUserData @role={role}").ToListAsync();
-            
-            // TODO: Mudar o role para corresponder a Helpdesk e User normal
-
-
-
-            SqlParameter role = new SqlParameter("@role", "helpdesk");
-            // run store procedure dbo.GetUserData 
             var response = await _context.Database.SqlQuery<PatientResponse>($"EXECUTE dbo.GetUserData @role={role}").ToListAsync();
-
             return Ok(response);
         }
     }
