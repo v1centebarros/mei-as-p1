@@ -34,5 +34,20 @@ namespace api.Controllers
             var response = await _context.Database.SqlQuery<PatientResponse>($"EXECUTE dbo.GetUserData @role={role}").ToListAsync();
             return Ok(response);
         }
+
+        [HttpGet("Me")]
+        [Authorize]
+        public async Task<IActionResult> GetByEmail()
+        {
+
+            //Access JWT token to get the role of the user
+
+            SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
+            SqlParameter email = new SqlParameter("@email", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value);
+
+            //TODO: Remove toListAsync            
+            var response = await _context.Database.SqlQuery<PatientResponse>($"EXECUTE dbo.GetUserDataByEmail @role={role}, @email={email}").ToListAsync();
+            return Ok(response);
+        }
     }
 }

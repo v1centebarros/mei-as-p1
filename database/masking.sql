@@ -39,3 +39,6 @@ EXEC dbo.GetUserData @role = 'patient';
 
 EXEC dbo.GetUserData @role = 'helpdesk';
 
+EXEC dbo.GetUserDataByEmail @role = 'helpdesk', @email = "helpdesk@example.com"
+
+
