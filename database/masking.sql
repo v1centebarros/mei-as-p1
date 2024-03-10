@@ -21,14 +21,14 @@ GRANT UNMASK ON  dbo.AspNetUsers(PhoneNumber) TO client;
 
 
 
-EXECUTE AS USER = 'client';
-SELECT * FROM dbo.AspNetUsers;
-REVERT;
+-- EXECUTE AS USER = 'client';
+-- SELECT * FROM dbo.AspNetUsers;
+-- REVERT;
 
-GRANT UNMASK ON  dbo.AspNetUsers(PhoneNumber) TO client;
-EXECUTE AS USER = 'helpdesk';
-SELECT * FROM dbo.AspNetUsers;
-REVERT;
+-- GRANT UNMASK ON  dbo.AspNetUsers(PhoneNumber) TO client;
+-- EXECUTE AS USER = 'helpdesk';
+-- SELECT * FROM dbo.AspNetUsers;
+-- REVERT;
 
 --Run Stored Procedure as client
 EXEC dbo.GetUserData @role = 'client';

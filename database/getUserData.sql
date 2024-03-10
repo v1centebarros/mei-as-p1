@@ -12,10 +12,16 @@ BEGIN
         EXECUTE AS USER
         = 'helpdesk';
     END
+    
+
     SELECT 
-    dbo.AspNetUsers.Id,dbo.AspNetUsers.FullName, dbo.AspNetUsers.Email, dbo.AspNetUsers.PhoneNumber, dbo.MedicalRecords.TreatmentPlan, dbo.MedicalRecords.DiagnosisDetails, dbo.MedicalRecords.AccessCode
-     FROM dbo.AspNetUsers
-     INNER JOIN dbo.MedicalRecords ON dbo.AspNetUsers.MedicalRecordId = dbo.MedicalRecords.Id;
+        [dbo].[Patients].FullName, 
+        [dbo].[MedicalRecords].DiagnosisDetails, 
+        [dbo].[MedicalRecords].MedicalRecordNumber, 
+        [dbo].[MedicalRecords].TreatmentPlan,
+        [dbo].[MedicalRecords].AccessCode
+        FROM [dbo].[Patients] INNER JOIN [dbo].[MedicalRecords] ON
+        [dbo].[Patients].MedicalRecordId = [dbo].[MedicalRecords].Id;
     REVERT;
 END;
 GO
