@@ -2,7 +2,9 @@ import * as Yup from "yup";
 import {ErrorMessage, Field, Form, Formik} from "formik";
 import {useAuthContext} from "../contexts/Auth.jsx";
 import {useNavigate} from "react-router-dom";
-import {useEffect} from "react";
+import { useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { doLogin } from "../api/auth";
 
 
 export const Login = () => {
@@ -12,8 +14,19 @@ export const Login = () => {
         email: Yup.string().email().required(),
         password: Yup.string().required()
     });
-    const {loginMutation, token} = useAuthContext();
+    const {token,setToken} = useAuthContext();
 
+
+    const loginMutation = useMutation({
+        mutationFn: (userData) => doLogin(userData),
+        onSuccess: (data) => {
+            setToken(()=>data.token)
+            localStorage.setItem('token', data.token)
+        },
+        onError: (error) => {
+            console.log('error', error)
+        }
+    });
 
     useEffect(() => {
         if (token) {

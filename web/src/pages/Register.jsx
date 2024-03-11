@@ -1,10 +1,13 @@
 import * as Yup from "yup";
 import { Formik, Field, ErrorMessage, Form } from "formik";
-import {useAuthContext} from "../contexts/Auth.jsx";
+import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { doRegister } from "../api/auth";
+
 
 export const Register = () => {
 
-    const {registerMutation} = useAuthContext()
+    const navigate = useNavigate()
     const registerSchema = Yup.object().shape({
         fullName: Yup.string().required('Full Name is required'),
         email: Yup.string().email('Invalid email').required('Email is required'),
@@ -15,6 +18,18 @@ export const Register = () => {
         diagnosisDetails: Yup.string().required("Please fill the Diagnosis Details"),
         accessCode: Yup.string().required("Please fill the Access Code")
         
+    })
+
+
+    const registerMutation = useMutation({
+        mutationFn:(userData) => doRegister(userData),
+        onSuccess: (data) => {
+            console.log('data', data)
+            navigate('/login')
+        },
+        onError: (error) => {
+            console.log('error', error)
+        }
     })
 
     const handleSubmit = (values) => registerMutation.mutate(values)

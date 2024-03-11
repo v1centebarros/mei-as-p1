@@ -4,7 +4,7 @@ import {useAuth} from '../hooks/useAuth';
 export const AuthContext = createContext({});
 
 export const AuthProvider = ({children}) => {
-    const {login, isLogged, token, setToken, logout, loginMutation, registerMutation} = useAuth();
+    const {login, isLogged, token, setToken, logout} = useAuth();
 
     useEffect(() => {
         const t = localStorage.getItem('token');
@@ -20,8 +20,6 @@ export const AuthProvider = ({children}) => {
                 isLogged,
                 token,
                 setToken,
-                loginMutation,
-                registerMutation
             }
         }
         , [token]);
