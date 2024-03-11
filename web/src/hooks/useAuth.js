@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {useMutation} from "@tanstack/react-query";
-import {doLogin, doRegister} from "../../api/auth.js";
+import { doLogin, doRegister } from "../api/auth.js";
 
 export const useAuth = () => {
     const [token, setToken] = useState(null);
