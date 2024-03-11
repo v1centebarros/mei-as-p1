@@ -5,6 +5,7 @@ namespace api.Models.DTOs
 {
     public class PatientDTO
     {
+        public string Id { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         [EmailAddress]
         [DataType(DataType.EmailAddress)]

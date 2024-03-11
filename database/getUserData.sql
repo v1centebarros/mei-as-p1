@@ -14,7 +14,8 @@ BEGIN
     END
     
 
-    SELECT 
+    SELECT
+        [dbo].[Patients].Id,
         [dbo].[Patients].FullName, 
         [dbo].[AspNetUsers].Email,
         [dbo].[AspNetUsers].[PhoneNumber],
