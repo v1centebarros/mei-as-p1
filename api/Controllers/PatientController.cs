@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using api.Data;
 using api.Models.Contracts;
@@ -23,7 +24,7 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> Get()
         {
             SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
@@ -46,7 +47,7 @@ namespace api.Controllers
         public async Task<IActionResult> Put([FromBody] PatientDTO NewPatient)
         {
             var nameIdentifier = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-           
+
             var patient = await _context.Patients
                 .Include(p => p.ApplicationUser)
                 .Include(p => p.MedicalRecord)
@@ -65,8 +66,8 @@ namespace api.Controllers
             patient.MedicalRecord.TreatmentPlan = NewPatient.TreatmentPlan;
             patient.MedicalRecord.DiagnosisDetails = NewPatient.DiagnosisDetails;
             patient.MedicalRecord.AccessCode = NewPatient.AccessCode;
-            
-            
+
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -85,6 +86,54 @@ namespace api.Controllers
 
             return Ok(NewPatient);
 
+        }
+
+
+        [HttpPut("helpdesk")]
+        [Authorize(Roles = "helpdesk")]
+        public async Task<IActionResult> PutByHelpdesk([FromBody] PatientByHelpdeskDTO NewPatient, string id, string? accessCode = "")
+        {
+            //TODO: Trabalhar com o accessCode
+            // Check if current user is a helpdesk
+            var nameIdentifier = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            if (nameIdentifier.Value != "helpdesk")
+            {
+                return Unauthorized();
+            }
+
+            var patient = await _context.Patients
+                .Include(p => p.ApplicationUser)
+                .Include(p => p.MedicalRecord)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+            // Update the patient's data
+            patient.FullName = NewPatient.FullName;
+            patient.ApplicationUser.Email = NewPatient.Email;
+            patient.ApplicationUser.UserName = NewPatient.Email;
+            patient.MedicalRecord.MedicalRecordNumber = NewPatient.MedicalRecordNumber;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PatientExists(patient.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok(NewPatient);
         }
 
         private bool PatientExists(string id)
