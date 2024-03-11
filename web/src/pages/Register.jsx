@@ -13,6 +13,7 @@ export const Register = () => {
         treatmentPlan: Yup.string().required("Please fill the Treatment Plan"),
         phoneNumber: Yup.string().required("Please fill the Phone Number"),
         diagnosisDetails: Yup.string().required("Please fill the Diagnosis Details"),
+        accessCode: Yup.string().required("Please fill the Access Code")
         
     })
 
@@ -21,7 +22,7 @@ export const Register = () => {
 
     return <div>
         <h1 className="text-2xl">Register</h1>
-        <Formik initialValues={{ fullName: '', email: '', password: '', confirmPassword: '', treatmentPlan:'',phoneNumber:'',diagnosisDetails:'' }} validationSchema={registerSchema} onSubmit={(values) => handleSubmit(values)}>
+        <Formik initialValues={{ fullName: '', email: '', password: '', confirmPassword: '', treatmentPlan:'',phoneNumber:'',diagnosisDetails:'', accessCode:'' }} validationSchema={registerSchema} onSubmit={(values) => handleSubmit(values)}>
             <Form>
                 <label className="form-control w-full max-w-xs">
                     <div>
@@ -94,6 +95,17 @@ export const Register = () => {
                         <ErrorMessage name={"diagnosisDetails"}/>
                     </div>
                     <Field type="text" name="diagnosisDetails" placeholder="Diagnosis Details" className="input input-bordered w-full max-w-xs" />
+                </label>
+
+
+                <label className="form-control w-full max-w-xs">
+                    <div>
+                        <div className="label">
+                            <span className="label-text">Access Code</span>
+                        </div>
+                        <ErrorMessage name={"accessCode"}/>
+                    </div>
+                    <Field type="text" name="accessCode" placeholder="Access Code" className="input input-bordered w-full max-w-xs" />
                 </label>
 
                 <button type="submit" className="btn btn-primary">Register</button>
