@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
 using api.Data;
@@ -89,18 +90,10 @@ namespace api.Controllers
         }
 
 
-        [HttpPut("helpdesk")]
+        [HttpPut("{id}")]
         [Authorize(Roles = "helpdesk")]
-        public async Task<IActionResult> PutByHelpdesk([FromBody] PatientByHelpdeskDTO NewPatient, string id, string? accessCode = "")
+        public async Task<IActionResult> PutByHelpdesk([FromBody] PatientByHelpdeskDTO NewPatient,[Required]string id)
         {
-            //TODO: Trabalhar com o accessCode
-            // Check if current user is a helpdesk
-            var nameIdentifier = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
-            if (nameIdentifier.Value != "helpdesk")
-            {
-                return Unauthorized();
-            }
-
             var patient = await _context.Patients
                 .Include(p => p.ApplicationUser)
                 .Include(p => p.MedicalRecord)
@@ -116,6 +109,52 @@ namespace api.Controllers
             patient.ApplicationUser.Email = NewPatient.Email;
             patient.ApplicationUser.UserName = NewPatient.Email;
             patient.MedicalRecord.MedicalRecordNumber = NewPatient.MedicalRecordNumber;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PatientExists(patient.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok(NewPatient);
+        }
+
+        [HttpPut("{id}/AccessToken")]
+        [Authorize(Roles = "helpdesk")]
+        public async Task<IActionResult> PutByHelpdeskWithAccessToken([FromBody] PatientByHelpdeskAuthorizedDTO NewPatient, [Required] string id, [Required] string accessToken)
+        {
+            var patient = await _context.Patients
+                .Include(p => p.ApplicationUser)
+                .Include(p => p.MedicalRecord)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+            if (patient.MedicalRecord.AccessCode != accessToken)
+            {
+                return Unauthorized();
+            }
+
+            // Update the patient's data
+            patient.FullName = NewPatient.FullName;
+            patient.ApplicationUser.Email = NewPatient.Email;
+            patient.ApplicationUser.UserName = NewPatient.Email;
+            patient.MedicalRecord.MedicalRecordNumber = NewPatient.MedicalRecordNumber;
+            patient.MedicalRecord.TreatmentPlan = NewPatient.TreatmentPlan;
+            patient.MedicalRecord.DiagnosisDetails = NewPatient.DiagnosisDetails;
 
             try
             {
