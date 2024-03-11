@@ -6,7 +6,6 @@ namespace api.Data
     public class AppDbContext(DbContextOptions options) : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<MedicalRecord> MedicalRecords { get; set; } = default!;
-        public DbSet<WeatherForecast> WeatherForecast { get; set; } = default!;
 
         public DbSet<Patient> Patients { get; set; } = default!;
     }
