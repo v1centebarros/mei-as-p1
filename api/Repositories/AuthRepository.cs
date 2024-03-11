@@ -12,6 +12,8 @@ using api.Models.DTOs;
 using api.Models.Contracts;
 using api.Data;
 using static api.Models.DTOs.ServiceResponses;
+using System.Security.Policy;
+using System.Security.Cryptography;
 
 namespace api.Repositories
 {
@@ -51,7 +53,7 @@ namespace api.Repositories
                     MedicalRecordNumber = Guid.NewGuid().ToString(),
                     TreatmentPlan = userDTO.TreatmentPlan,
                     DiagnosisDetails = userDTO.DiagnosisDetails,
-                    AccessCode = Guid.NewGuid().ToString(),
+                    AccessCode = HashAccessCode(userDTO.AccessCode)
                 }
             };
 
@@ -120,6 +122,13 @@ namespace api.Repositories
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+        }
+
+        private string HashAccessCode(string accessCode)
+        {
+            var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(accessCode));
+            return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
     }
 }

@@ -22,9 +22,8 @@ BEGIN
         [dbo].[AspNetUsers].[PhoneNumber],
         [dbo].[MedicalRecords].DiagnosisDetails, 
         [dbo].[MedicalRecords].MedicalRecordNumber, 
-        [dbo].[MedicalRecords].TreatmentPlan,
-        [dbo].[MedicalRecords].AccessCode
-        FROM [dbo].[Patients] INNER JOIN [dbo].[MedicalRecords] ON
+        [dbo].[MedicalRecords].TreatmentPlan
+    FROM [dbo].[Patients] INNER JOIN [dbo].[MedicalRecords] ON
         [dbo].[Patients].MedicalRecordId = [dbo].[MedicalRecords].Id
         INNER JOIN [dbo].[AspNetUsers] ON
         [dbo].[Patients].[Id] = [dbo].[AspNetUsers].[Id]

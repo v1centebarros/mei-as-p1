@@ -18,7 +18,5 @@ namespace api.Models.DTOs
         public string MedicalRecordNumber { get; set; } = string.Empty;
         [DataType(DataType.Text)]
         public string TreatmentPlan { get; set; } = string.Empty;
-        [DataType(DataType.Text)]
-        public string AccessCode { get; set; } = string.Empty;
     }
 }

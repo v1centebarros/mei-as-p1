@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using api.Data;
 using api.Models.Contracts;
 using api.Models.DTOs;
@@ -66,7 +68,6 @@ namespace api.Controllers
             patient.ApplicationUser.PhoneNumber = NewPatient.PhoneNumber;
             patient.MedicalRecord.TreatmentPlan = NewPatient.TreatmentPlan;
             patient.MedicalRecord.DiagnosisDetails = NewPatient.DiagnosisDetails;
-            patient.MedicalRecord.AccessCode = NewPatient.AccessCode;
 
 
             try
@@ -92,7 +93,7 @@ namespace api.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "helpdesk")]
-        public async Task<IActionResult> PutByHelpdesk([FromBody] PatientByHelpdeskDTO NewPatient,[Required]string id)
+        public async Task<IActionResult> PutByHelpdesk([FromBody] PatientByHelpdeskDTO NewPatient, [Required] string id)
         {
             var patient = await _context.Patients
                 .Include(p => p.ApplicationUser)
@@ -143,7 +144,7 @@ namespace api.Controllers
                 return NotFound();
             }
 
-            if (patient.MedicalRecord.AccessCode != accessToken)
+            if (patient.MedicalRecord.AccessCode != HashAccessCode(accessToken))
             {
                 return Unauthorized();
             }
@@ -178,6 +179,13 @@ namespace api.Controllers
         private bool PatientExists(string id)
         {
             return _context.Patients.Any(e => e.Id == id);
+        }
+
+        private string HashAccessCode(string accessCode)
+        {
+            var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(accessCode));
+            return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
     }
 }
