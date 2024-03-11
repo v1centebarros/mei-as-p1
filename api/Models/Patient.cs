@@ -10,7 +10,7 @@ namespace api.Models
     {
         [Key]
         [ForeignKey("ApplicationUser")]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
 
         public required ApplicationUser ApplicationUser { get; set; }
         public string? FullName { get; set; }

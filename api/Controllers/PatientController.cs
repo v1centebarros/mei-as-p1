@@ -26,28 +26,70 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> Get()
         {
-
-            //Access JWT token to get the role of the user
-
             SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
-            // run store procedure dbo.GetUserData
-            var response = await _context.Database.SqlQuery<PatientResponse>($"EXECUTE dbo.GetUserData @role={role}").ToListAsync();
+            var response = await _context.Database.SqlQuery<PatientDTO>($"EXECUTE dbo.GetUserData @role={role}").ToListAsync();
             return Ok(response);
         }
 
         [HttpGet("Me")]
         [Authorize]
-        public async Task<IActionResult> GetByEmail()
+        public async Task<IActionResult> GetMe()
         {
-
-            //Access JWT token to get the role of the user
-
             SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
-            SqlParameter email = new SqlParameter("@email", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value);
+            SqlParameter id = new SqlParameter("@id", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
+            var response = await _context.Database.SqlQuery<PatientDTO>($"EXECUTE dbo.GetUserById @role={role}, @id={id}").ToListAsync();
+            return Ok(response[0]);
+        }
 
-            //TODO: Remove toListAsync            
-            var response = await _context.Database.SqlQuery<PatientResponse>($"EXECUTE dbo.GetUserDataByEmail @role={role}, @email={email}").ToListAsync();
-            return Ok(response);
+        [HttpPut]
+        [Authorize]
+        public async Task<IActionResult> Put([FromBody] PatientDTO NewPatient)
+        {
+            var nameIdentifier = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+           
+            var patient = await _context.Patients
+                .Include(p => p.ApplicationUser)
+                .Include(p => p.MedicalRecord)
+                .FirstOrDefaultAsync(x => x.Id == nameIdentifier.Value);
+
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+            // Update the patient's data
+            patient.FullName = NewPatient.FullName;
+            patient.ApplicationUser.Email = NewPatient.Email;
+            patient.ApplicationUser.UserName = NewPatient.Email;
+            patient.ApplicationUser.PhoneNumber = NewPatient.PhoneNumber;
+            patient.MedicalRecord.TreatmentPlan = NewPatient.TreatmentPlan;
+            patient.MedicalRecord.DiagnosisDetails = NewPatient.DiagnosisDetails;
+            patient.MedicalRecord.AccessCode = NewPatient.AccessCode;
+            
+            
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PatientExists(patient.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok(NewPatient);
+
+        }
+
+        private bool PatientExists(string id)
+        {
+            return _context.Patients.Any(e => e.Id == id);
         }
     }
 }
