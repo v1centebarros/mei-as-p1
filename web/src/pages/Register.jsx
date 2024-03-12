@@ -1,9 +1,8 @@
 import * as Yup from "yup";
 import { Formik, Field, ErrorMessage, Form } from "formik";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { doRegister } from "../api/auth";
-import { Link } from "react-router-dom";
 
 
 export const Register = () => {
