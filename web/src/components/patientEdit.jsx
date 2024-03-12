@@ -97,7 +97,7 @@ export const PatientEdit = ({ patient, setIsEditing}) => {
                         className="input input-bordered w-full " />
                 </label>
 
-                <button type="submit" className="btn btn-primary btn-block">Submit</button>
+                <button type="submit" className="btn btn-success btn-block mt-2">Submit</button>
             </Form>
         </Formik>
 

@@ -35,6 +35,16 @@ namespace api.Controllers
             return Ok(response);
         }
 
+        [HttpGet("{id}")]
+        [Authorize(Roles = "helpdesk")]
+        public async Task<IActionResult> Get(string id)
+        {
+            SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
+            SqlParameter userId = new SqlParameter("@id", id);
+            var response = await _context.Database.SqlQuery<PatientDTO>($"EXECUTE dbo.GetUserById @role={role}, @id={userId}").ToListAsync();
+            return Ok(response[0]);
+        }
+
         [HttpGet("Me")]
         [Authorize]
         public async Task<IActionResult> GetMe()
@@ -153,6 +163,7 @@ namespace api.Controllers
             patient.FullName = NewPatient.FullName;
             patient.ApplicationUser.Email = NewPatient.Email;
             patient.ApplicationUser.UserName = NewPatient.Email;
+            patient.ApplicationUser.PhoneNumber = NewPatient.PhoneNumber;
             patient.MedicalRecord.MedicalRecordNumber = NewPatient.MedicalRecordNumber;
             patient.MedicalRecord.TreatmentPlan = NewPatient.TreatmentPlan;
             patient.MedicalRecord.DiagnosisDetails = NewPatient.DiagnosisDetails;

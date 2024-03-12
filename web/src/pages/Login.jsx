@@ -1,11 +1,12 @@
 import * as Yup from "yup";
-import {ErrorMessage, Field, Form, Formik} from "formik";
-import {useAuthContext} from "../contexts/Auth.jsx";
-import {useNavigate} from "react-router-dom";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import { useAuthContext } from "../contexts/Auth.jsx";
+import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { doLogin } from "../api/auth";
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
+import { Link } from "react-router-dom";
 
 
 export const Login = () => {
@@ -15,7 +16,7 @@ export const Login = () => {
         email: Yup.string().email().required(),
         password: Yup.string().required()
     });
-    const {token,setToken,setRole} = useAuthContext();
+    const { token, setToken, setRole } = useAuthContext();
 
 
     const loginMutation = useMutation({
@@ -37,38 +38,41 @@ export const Login = () => {
         }
     }, [token])
 
-    const handleSubmit = (values) => {loginMutation.mutate(values)};
+    const handleSubmit = (values) => { loginMutation.mutate(values) };
 
     return (
-        <div>
-            <h1 className="text-2xl">Login</h1>
+        <div className="mx-auto bg-base-200 min-h-screen h-full flex items-center">
+            <div className="container mx-auto card bg-white">
+                <h1 className="text-5xl font-bold mx-auto">Login</h1>
 
-            <Formik initialValues={{email: '', password: ''}} validationSchema={loginSchema}
+                <Formik initialValues={{ email: '', password: '' }} validationSchema={loginSchema}
                     onSubmit={(values) => handleSubmit(values)}>
-                <Form>
-                    <label className="form-control w-full max-w-xs">
-                        <div>
-                            <div className="label">
-                                <span className="label-text">Email</span>
+                    <Form className="flex flex-col gap-y-2 m-2">
+                        <label className="form-control w-full">
+                            <div>
+                                <div className="label">
+                                    <span className="label-text">Email</span>
+                                </div>
+                                <ErrorMessage name={"email"} />
                             </div>
-                            <ErrorMessage name={"email"}/>
-                        </div>
-                        <Field type="text" name="email" placeholder="email"
-                               className="input input-bordered w-full max-w-xs"/>
-                    </label>
-                    <label className="form-control w-full max-w-xs">
-                        <div>
-                            <div className="label">
-                                <span className="label-text">Password</span>
+                            <Field type="text" name="email" placeholder="email"
+                                className="input input-bordered w-full" />
+                        </label>
+                        <label className="form-control w-full">
+                            <div>
+                                <div className="label">
+                                    <span className="label-text">Password</span>
+                                </div>
+                                <ErrorMessage name={"password"} />
                             </div>
-                            <ErrorMessage name={"password"}/>
-                        </div>
-                        <Field type="password" name="password" placeholder="password"
-                               className="input input-bordered w-full max-w-xs"/>
-                    </label>
-                    <button type="submit" className="btn btn-secondary">Login</button>
-                </Form>
-            </Formik>
+                            <Field type="password" name="password" placeholder="password"
+                                className="input input-bordered w-full" />
+                        </label>
+                        <button type="submit" className="btn btn-primary btn-block">Login</button>
+                        <Link to={"/register"} type="submit" className="btn btn-primary btn-block">I am New!</Link>
+                    </Form>
+                </Formik>
+            </div>
         </div>
     )
 }

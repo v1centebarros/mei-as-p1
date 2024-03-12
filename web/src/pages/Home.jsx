@@ -9,7 +9,7 @@ import { PatientEdit } from "../components/patientEdit.jsx";
 
 export const Home = () => {
 
-    const { token } = useAuthContext();
+    const { token, role } = useAuthContext();
     const [isEditing, setIsEditing] = useState(false)
 
     const { data: patientData, isSuccess, isError, isLoading } = useQuery(
@@ -20,10 +20,15 @@ export const Home = () => {
         })
 
     return (
-        <div>
-            <h1 className="text-2xl">Home</h1>
-            <Link to={"/patients"}>Patien
-                {isError && <p>Error</p>}ts</Link>
+        <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center justify-between">
+                <h1 className="text-4xl font-bold">Home</h1>
+                {role === "helpdesk" && <Link to={"/patients"}
+                    className="btn btn-primary"
+                >Patients</Link>}
+            </div>
+
+            {isError && <p>Error</p>}
             {isLoading && <p>Loading</p>}
             {isSuccess && <>
                 {!isEditing ?
