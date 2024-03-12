@@ -29,7 +29,7 @@ export const Home = () => {
                 {!isEditing ?
                     <PatientDisplay patient={patientData} />
                     :
-                    <PatientEdit patient={patientData} />
+                    <PatientEdit patient={patientData} setIsEditing={setIsEditing} />
                 }
 
                 <button className="btn btn-primary btn-block mt-2"

@@ -66,7 +66,7 @@ export const Login = () => {
                         <Field type="password" name="password" placeholder="password"
                                className="input input-bordered w-full max-w-xs"/>
                     </label>
-                    <button type="submit" className="btn btn-primary">Login</button>
+                    <button type="submit" className="btn btn-secondary">Login</button>
                 </Form>
             </Formik>
         </div>
