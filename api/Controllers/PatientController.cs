@@ -1,15 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using api.Data;
 using api.Models.Contracts;
 using api.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -17,21 +11,14 @@ namespace api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class PatientController : ControllerBase
+    public class PatientController(IPatientRepository patientRepository) : ControllerBase
     {
-        private readonly AppDbContext _context;
-
-        public PatientController(AppDbContext context)
-        {
-            _context = context;
-        }
-
         [HttpGet]
         [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> Get()
         {
-            SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
-            var response = await _context.Database.SqlQuery<PatientDTO>($"EXECUTE dbo.GetUserData @role={role}").ToListAsync();
+            var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            var response = await patientRepository.GetPatients(role);
             return Ok(response);
         }
 
@@ -39,61 +26,30 @@ namespace api.Controllers
         [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> Get(string id)
         {
-            SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
-            SqlParameter userId = new SqlParameter("@id", id);
-            var response = await _context.Database.SqlQuery<PatientDTO>($"EXECUTE dbo.GetUserById @role={role}, @id={userId}").ToListAsync();
-            return Ok(response[0]);
+            var response = await patientRepository.GetPatient(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value, id);
+            return Ok(response);
         }
 
         [HttpGet("Me")]
         [Authorize]
         public async Task<IActionResult> GetMe()
         {
-            SqlParameter role = new SqlParameter("@role", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value);
-            SqlParameter id = new SqlParameter("@id", User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
-            var response = await _context.Database.SqlQuery<PatientDTO>($"EXECUTE dbo.GetUserById @role={role}, @id={id}").ToListAsync();
-            return Ok(response[0]);
+            var response = await patientRepository.GetMe(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
+            User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
+            return Ok(response);
         }
 
         [HttpPut]
         [Authorize]
         public async Task<IActionResult> Put([FromBody] PatientDTO NewPatient)
         {
-            var nameIdentifier = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            var nameIdentifier = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var patient = await _context.Patients
-                .Include(p => p.ApplicationUser)
-                .Include(p => p.MedicalRecord)
-                .FirstOrDefaultAsync(x => x.Id == nameIdentifier.Value);
+            var response = await patientRepository.UpdateMe(nameIdentifier, NewPatient);
 
-            if (patient == null)
+            if (response == null)
             {
                 return NotFound();
-            }
-
-            // Update the patient's data
-            patient.FullName = NewPatient.FullName;
-            patient.ApplicationUser.Email = NewPatient.Email;
-            patient.ApplicationUser.UserName = NewPatient.Email;
-            patient.ApplicationUser.PhoneNumber = NewPatient.PhoneNumber;
-            patient.MedicalRecord.TreatmentPlan = NewPatient.TreatmentPlan;
-            patient.MedicalRecord.DiagnosisDetails = NewPatient.DiagnosisDetails;
-
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PatientExists(patient.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
             }
 
             return Ok(NewPatient);
@@ -105,36 +61,12 @@ namespace api.Controllers
         [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> PutByHelpdesk([FromBody] PatientByHelpdeskDTO NewPatient, [Required] string id)
         {
-            var patient = await _context.Patients
-                .Include(p => p.ApplicationUser)
-                .Include(p => p.MedicalRecord)
-                .FirstOrDefaultAsync(x => x.Id == id);
+            
+            var response = await patientRepository.UpdateByHelpdesk(NewPatient, id);
 
-            if (patient == null)
+            if (response == null)
             {
                 return NotFound();
-            }
-
-            // Update the patient's data
-            patient.FullName = NewPatient.FullName;
-            patient.ApplicationUser.Email = NewPatient.Email;
-            patient.ApplicationUser.UserName = NewPatient.Email;
-            patient.MedicalRecord.MedicalRecordNumber = NewPatient.MedicalRecordNumber;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PatientExists(patient.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
             }
 
             return Ok(NewPatient);
@@ -144,59 +76,17 @@ namespace api.Controllers
         [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> PutByHelpdeskWithAccessToken([FromBody] PatientByHelpdeskAuthorizedDTO NewPatient, [Required] string id, [Required] string accessToken)
         {
-            var patient = await _context.Patients
-                .Include(p => p.ApplicationUser)
-                .Include(p => p.MedicalRecord)
-                .FirstOrDefaultAsync(x => x.Id == id);
+            
+            var response = await patientRepository.UpdateByHelpdeskWithAccessToken(NewPatient, id, accessToken);
 
-            if (patient == null)
+            if (response == null)
             {
                 return NotFound();
-            }
-
-            if (patient.MedicalRecord.AccessCode != HashAccessCode(accessToken))
-            {
-                return Unauthorized();
-            }
-
-            // Update the patient's data
-            patient.FullName = NewPatient.FullName;
-            patient.ApplicationUser.Email = NewPatient.Email;
-            patient.ApplicationUser.UserName = NewPatient.Email;
-            patient.ApplicationUser.PhoneNumber = NewPatient.PhoneNumber;
-            patient.MedicalRecord.MedicalRecordNumber = NewPatient.MedicalRecordNumber;
-            patient.MedicalRecord.TreatmentPlan = NewPatient.TreatmentPlan;
-            patient.MedicalRecord.DiagnosisDetails = NewPatient.DiagnosisDetails;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PatientExists(patient.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
             }
 
             return Ok(NewPatient);
         }
 
-        private bool PatientExists(string id)
-        {
-            return _context.Patients.Any(e => e.Id == id);
-        }
-
-        private string HashAccessCode(string accessCode)
-        {
-            var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(accessCode));
-            return BitConverter.ToString(hash).Replace("-", "").ToLower();
-        }
+        
     }
 }
