@@ -9,6 +9,7 @@ export const useAuth = () => {
 
     const logout = () => {
         setToken(null);
+        setRole(null);
         localStorage.removeItem('token');
     }
 

@@ -12,7 +12,7 @@ export default function Router() {
     const router = createBrowserRouter([
         {
             path: "/", element: <Base />, children: [
-                { index: true, element: <PrivateRoute component={Home}/> },
+                { index: true, element: <PrivateRoute component={Home} roles={["patient"]}/> },
             ]
         },
         { path: "/login", element: <Login /> },

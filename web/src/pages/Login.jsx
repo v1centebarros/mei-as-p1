@@ -23,7 +23,8 @@ export const Login = () => {
         onSuccess: (data) => {
             setToken(() => data.token)
             localStorage.setItem('token', data.token)
-            setRole(()=>jwtDecode(data.token)["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"])
+            setRole(() => jwtDecode(data.token)["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"])
+            localStorage.setItem('role', jwtDecode(data.token)["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"])
         },
         onError: (error) => {
             console.log('error', error)

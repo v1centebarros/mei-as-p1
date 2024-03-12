@@ -9,7 +9,7 @@ export const AuthProvider = ({children}) => {
 
     useEffect(() => {
         const t = localStorage.getItem('token');
-        if (t) {
+        if (t !== null) {
             setToken(() => t)
             setRole(() => jwtDecode(t)["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"])
         }
