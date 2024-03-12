@@ -13,6 +13,12 @@ namespace api.Controllers {
         public async Task<IActionResult> Register(UserDTO userDTO)
         {
             var response = await userAuth.Create(userDTO);
+
+            if(!response.Flag)
+            {
+                return BadRequest(response);
+            }
+
             return Ok(response);
         }
 
@@ -20,6 +26,12 @@ namespace api.Controllers {
         public async Task<IActionResult> Login(LoginDTO loginDTO)
         {
             var response = await userAuth.Login(loginDTO);
+
+            if(!response.Flag)
+            {
+                return BadRequest(response);
+            }
+
             return Ok(response);
         }
     }
