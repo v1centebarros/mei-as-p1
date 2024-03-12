@@ -5,6 +5,7 @@ import {useNavigate} from "react-router-dom";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { doLogin } from "../api/auth";
+import {jwtDecode} from 'jwt-decode';
 
 
 export const Login = () => {
@@ -14,14 +15,15 @@ export const Login = () => {
         email: Yup.string().email().required(),
         password: Yup.string().required()
     });
-    const {token,setToken} = useAuthContext();
+    const {token,setToken,setRole} = useAuthContext();
 
 
     const loginMutation = useMutation({
         mutationFn: (userData) => doLogin(userData),
         onSuccess: (data) => {
-            setToken(()=>data.token)
+            setToken(() => data.token)
             localStorage.setItem('token', data.token)
+            setRole(()=>jwtDecode(data.token)["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"])
         },
         onError: (error) => {
             console.log('error', error)

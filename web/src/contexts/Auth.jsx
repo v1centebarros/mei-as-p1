@@ -1,15 +1,17 @@
 import {createContext, useContext, useEffect, useMemo} from 'react';
-import {useAuth} from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
+import { jwtDecode } from "jwt-decode"
 
 export const AuthContext = createContext({});
 
 export const AuthProvider = ({children}) => {
-    const {login, isLogged, token, setToken, logout} = useAuth();
+    const {login, isLogged, token, setToken, logout, role, setRole} = useAuth();
 
     useEffect(() => {
         const t = localStorage.getItem('token');
         if (t) {
             setToken(() => t)
+            setRole(() => jwtDecode(t)["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"])
         }
     }, []);
 
@@ -20,9 +22,11 @@ export const AuthProvider = ({children}) => {
                 isLogged,
                 token,
                 setToken,
+                role,
+                setRole
             }
         }
-        , [token]);
+        , [token,role]);
 
     return <AuthContext.Provider value={authCtx}>
         {children}

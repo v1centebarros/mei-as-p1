@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 export const useAuth = () => {
     const [token, setToken] = useState(null);
+    const [role, setRole] = useState(null);
     const login = (token) => {
         setToken(token);
     }
@@ -20,6 +21,8 @@ export const useAuth = () => {
         logout,
         isLogged,
         token,
-        setToken
+        setToken,
+        role,
+        setRole
     }
 }

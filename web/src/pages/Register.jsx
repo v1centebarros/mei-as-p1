@@ -24,7 +24,6 @@ export const Register = () => {
     const registerMutation = useMutation({
         mutationFn:(userData) => doRegister(userData),
         onSuccess: (data) => {
-            console.log('data', data)
             navigate('/login')
         },
         onError: (error) => {
