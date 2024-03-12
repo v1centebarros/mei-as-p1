@@ -24,7 +24,7 @@ export const Patients = () => {
         {isError && <p>Error</p>}
         {isLoading && <p>Loading</p>}
         {isSuccess && <div className="overflow-x-auto">
-            <table className="table">
+            <table className="table bg-white card my-2 shadow-lg">
                 <thead>
                     <tr>
                         <th>Full Name</th>
