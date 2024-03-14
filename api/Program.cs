@@ -10,8 +10,12 @@ using api.Models.Contracts;
 using api.Repositories;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.Net.Http.Headers;
-using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -19,6 +23,70 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+
+builder.Services.AddOpenTelemetryTracing(budiler =>
+            {
+                budiler
+                    .AddAspNetCoreInstrumentation(opt =>
+                    {
+                        opt.RecordException = true;
+                    })
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault()
+                        .AddService("API_Service")
+                        .AddTelemetrySdk()
+                    )
+                    .SetErrorStatusOnException(true)
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri("http://localhost:4317");
+                    });
+            }).AddOpenTelemetryMetrics(options =>
+            {
+                options
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault()
+                        .AddService("Worker")
+                        .AddEnvironmentVariableDetector()
+                        .AddTelemetrySdk()
+                    )
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri("http://localhost:4317");
+                    });
+            });
+
+builder.Services.AddOpenTelemetryMetrics(options =>
+{
+    options
+        .SetResourceBuilder(ResourceBuilder.CreateDefault()
+            .AddService("Worker")
+            .AddEnvironmentVariableDetector()
+            .AddTelemetrySdk()
+        )
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://localhost:4317");
+        });
+});
+
+builder.Services.AddOpenTelemetryTracing(budiler =>
+{
+    budiler
+        .AddAspNetCoreInstrumentation(opt =>
+        {
+            opt.RecordException = true;
+        })
+        .SetResourceBuilder(ResourceBuilder.CreateDefault()
+            .AddService("Org.WebAPI")
+            .AddTelemetrySdk()
+        )
+        .SetErrorStatusOnException(true)
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://localhost:4317"); // Signoz Endpoint
+        });
+});
+
 
 
 //Starting
@@ -71,14 +139,11 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddOpenTelemetryTracing(budiler =>
     {
         budiler
-            .AddAspNetCoreInstrumentation(opt =>
-        {
-            opt.RecordException = true;
-        })
+            .AddAspNetCoreInstrumentation()
             .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                .AddService("Patient Inc.")
+                .AddService("MyWebApp")
                 .AddTelemetrySdk()
-            ).SetErrorStatusOnException(true)
+            )
             .AddOtlpExporter(options =>
             {
                 options.Endpoint = new Uri("http://localhost:4317"); // Signoz Endpoint
