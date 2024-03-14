@@ -7,18 +7,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
-
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class PatientController(IPatientRepository patientRepository) : ControllerBase
+    public class PatientController : ControllerBase
     {
+        private readonly ILogger<PatientController> _logger;
+        private readonly IPatientRepository _patientRepository;
+
+        public PatientController(IPatientRepository patientRepository, ILogger<PatientController> logger)
+        {
+            _patientRepository = patientRepository;
+            _logger = logger;
+        }
+
         [HttpGet]
         [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> Get()
         {
+            _logger.LogInformation("Get method called.");
             var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-            var response = await patientRepository.GetPatients(role);
+            var response = await _patientRepository.GetPatients(role);
             return Ok(response);
         }
 
@@ -26,7 +35,8 @@ namespace api.Controllers
         [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> Get(string id)
         {
-            var response = await patientRepository.GetPatient(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value, id);
+            _logger.LogInformation($"Get method called with id: {id}");
+            var response = await _patientRepository.GetPatient(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value, id);
             return Ok(response);
         }
 
@@ -34,7 +44,8 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> GetMe()
         {
-            var response = await patientRepository.GetMe(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
+            _logger.LogInformation("GetMe method called.");
+            var response = await _patientRepository.GetMe(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
             User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
             return Ok(response);
         }
@@ -43,29 +54,30 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> Put([FromBody] PatientDTO NewPatient)
         {
+            _logger.LogInformation("Put method called.");
             var nameIdentifier = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var response = await patientRepository.UpdateMe(nameIdentifier, NewPatient);
+            var response = await _patientRepository.UpdateMe(nameIdentifier, NewPatient);
 
             if (response == null)
             {
+                _logger.LogWarning("Update failed. Patient not found.");
                 return NotFound();
             }
 
             return Ok(NewPatient);
-
         }
-
 
         [HttpPut("{id}")]
         [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> PutByHelpdesk([FromBody] PatientByHelpdeskDTO NewPatient, [Required] string id)
         {
-            
-            var response = await patientRepository.UpdateByHelpdesk(NewPatient, id);
+            _logger.LogInformation($"PutByHelpdesk method called with id: {id}");
+            var response = await _patientRepository.UpdateByHelpdesk(NewPatient, id);
 
             if (response == null)
             {
+                _logger.LogWarning("Update by helpdesk failed. Patient not found.");
                 return NotFound();
             }
 
@@ -76,17 +88,16 @@ namespace api.Controllers
         [Authorize(Roles = "helpdesk")]
         public async Task<IActionResult> PutByHelpdeskWithAccessToken([FromBody] PatientByHelpdeskAuthorizedDTO NewPatient, [Required] string id, [Required] string accessToken)
         {
-            
-            var response = await patientRepository.UpdateByHelpdeskWithAccessToken(NewPatient, id, accessToken);
+            _logger.LogInformation($"PutByHelpdeskWithAccessToken method called with id: {id} and accessToken: {accessToken}");
+            var response = await _patientRepository.UpdateByHelpdeskWithAccessToken(NewPatient, id, accessToken);
 
             if (response == null)
             {
+                _logger.LogWarning("Update by helpdesk with access token failed. Patient not found.");
                 return NotFound();
             }
 
             return Ok(NewPatient);
         }
-
-        
     }
 }

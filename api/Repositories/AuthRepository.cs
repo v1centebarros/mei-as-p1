@@ -20,17 +20,20 @@ namespace api.Repositories
         private readonly AppDbContext _context;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _config;
+        private readonly ILogger<AuthRepository> _logger;
 
-        public AuthRepository(UserManager<ApplicationUser> userManager, AppDbContext context, RoleManager<IdentityRole> roleManager, IConfiguration config)
+        public AuthRepository(UserManager<ApplicationUser> userManager, AppDbContext context, RoleManager<IdentityRole> roleManager, IConfiguration config, ILogger<AuthRepository> logger)
         {
             _userManager = userManager;
             _context = context;
             _roleManager = roleManager;
             _config = config;
+            _logger = logger;
         }
-
         public async Task<GeneralResponse> Create(UserDTO userDTO)
         {
+                        _logger.LogInformation("Creating a new user");
+
             if (userDTO == null) return new GeneralResponse(false, "Model is empty");
 
             if (await _userManager.FindByEmailAsync(userDTO.Email) != null) 
@@ -58,6 +61,7 @@ namespace api.Repositories
             await _context.SaveChangesAsync();
 
             await AssignRole(user);
+            _logger.LogInformation("User created successfully");
 
             return new GeneralResponse(true, "Account created successfully");
         }
@@ -81,6 +85,8 @@ namespace api.Repositories
 
         public async Task<LoginResponse> Login(LoginDTO loginDTO)
         {
+            _logger.LogInformation("Logging in user");
+
             if (loginDTO == null) return new LoginResponse(false, null, "Login container is empty");
 
             var user = await _context.Patients
@@ -94,6 +100,7 @@ namespace api.Repositories
 
             var roles = await _userManager.GetRolesAsync(user.ApplicationUser);
             var token = GenerateToken(user, roles.FirstOrDefault());
+            _logger.LogInformation("User logged in successfully");
 
             return new LoginResponse(true, token, "Login completed successfully");
         }
