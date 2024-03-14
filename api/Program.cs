@@ -13,6 +13,9 @@ using Microsoft.Net.Http.Headers;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Logs;
+using OpenTelemetry.ResourceDetectors.Container;
+using OpenTelemetry.ResourceDetectors.Host;
 
 
 
@@ -25,68 +28,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 
-builder.Services.AddOpenTelemetryTracing(budiler =>
-            {
-                budiler
-                    .AddAspNetCoreInstrumentation(opt =>
-                    {
-                        opt.RecordException = true;
-                    })
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                        .AddService("API_Service")
-                        .AddTelemetrySdk()
-                    )
-                    .SetErrorStatusOnException(true)
-                    .AddOtlpExporter(options =>
-                    {
-                        options.Endpoint = new Uri("http://localhost:4317");
-                    });
-            }).AddOpenTelemetryMetrics(options =>
-            {
-                options
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                        .AddService("Worker")
-                        .AddEnvironmentVariableDetector()
-                        .AddTelemetrySdk()
-                    )
-                    .AddOtlpExporter(options =>
-                    {
-                        options.Endpoint = new Uri("http://localhost:4317");
-                    });
-            });
-
-builder.Services.AddOpenTelemetryMetrics(options =>
-{
-    options
-        .SetResourceBuilder(ResourceBuilder.CreateDefault()
-            .AddService("Worker")
-            .AddEnvironmentVariableDetector()
-            .AddTelemetrySdk()
-        )
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri("http://localhost:4317");
-        });
-});
-
-builder.Services.AddOpenTelemetryTracing(budiler =>
-{
-    budiler
-        .AddAspNetCoreInstrumentation(opt =>
-        {
-            opt.RecordException = true;
-        })
-        .SetResourceBuilder(ResourceBuilder.CreateDefault()
-            .AddService("Org.WebAPI")
-            .AddTelemetrySdk()
-        )
-        .SetErrorStatusOnException(true)
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri("http://localhost:4317"); // Signoz Endpoint
-        });
-});
-
+builder.Logging
+    .AddOpenTelemetry(options => options.AddOtlpExporter())
+    .AddConsole();
 
 
 //Starting
@@ -136,23 +80,29 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
-builder.Services.AddOpenTelemetryTracing(budiler =>
-    {
-        budiler
-            .AddAspNetCoreInstrumentation()
-            .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                .AddService("MyWebApp")
-                .AddTelemetrySdk()
-            )
-            .AddOtlpExporter(options =>
-            {
-                options.Endpoint = new Uri("http://localhost:4317"); // Signoz Endpoint
-            });
-    });
-
 builder.Services.AddScoped<IUserAuth, AuthRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 //Ending...
+
+Action<ResourceBuilder> appResourceBuilder =
+    resource => resource
+        .AddDetector(new ContainerResourceDetector())
+        .AddDetector(new HostDetector());
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(appResourceBuilder)
+    .WithTracing(tracerBuilder => tracerBuilder
+        .AddRedisInstrumentation(
+            options => options.SetVerboseDatabaseStatements = true)
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddOtlpExporter())
+    .WithMetrics(meterBuilder => meterBuilder
+        .AddProcessInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter());
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
