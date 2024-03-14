@@ -86,6 +86,7 @@ builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 
 Action<ResourceBuilder> appResourceBuilder =
     resource => resource
+        .AddService("Patient Inc. API")
         .AddDetector(new ContainerResourceDetector())
         .AddDetector(new HostDetector());
 
