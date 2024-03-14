@@ -1,4 +1,4 @@
-USE merda;
+USE patientinc;
 ALTER TABLE dbo.AspNetUsers
 ALTER COLUMN PhoneNumber ADD MASKED WITH (FUNCTION = 'partial(2,"xxxx",0)');
 ALTER TABLE dbo.MedicalRecords
