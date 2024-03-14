@@ -20,9 +20,15 @@ namespace api.Repositories
 
         public async Task<PatientDTO> GetMe(string role, string id)
         {
-            SqlParameter sqlRole = new SqlParameter("@role", role);
+            SqlParameter sqlRole = new SqlParameter("@role", "patient");
             SqlParameter sqlId = new SqlParameter("@id", id);
             var response = await _context.Database.SqlQuery<PatientDTO>($"EXECUTE dbo.GetUserById @role={sqlRole}, @id={sqlId}").ToListAsync();
+            
+            if (response.Count == 0)
+            {
+                return null;
+            }
+
             return response[0];
         }
 
@@ -31,6 +37,11 @@ namespace api.Repositories
             SqlParameter sqlRole = new SqlParameter("@role", role);
             SqlParameter userId = new SqlParameter("@id", id);
             var response = await _context.Database.SqlQuery<PatientDTO>($"EXECUTE dbo.GetUserById @role={sqlRole}, @id={userId}").ToListAsync();
+
+            if (response.Count == 0)
+            {
+                return null;
+            }
 
             return response[0];
             
