@@ -9,3 +9,100 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "C0nas_De_Saba0"
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+    restart: unless-stopped
+    volumes:
+      - ./telemetry/provisioning/:/etc/grafana/provisioning/
+    environment:
+      - "GF_INSTALL_PLUGINS=grafana-opensearch-datasource"
+    ports:
+      - 3000:3000
+
+  otelcol:
+    image: otel/opentelemetry-collector-contrib:0.96.0
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+    restart: unless-stopped
+    command: [ "--config=/etc/otelcol-config.yml", "--config=/etc/otelcol-config-extras.yml" ]
+    volumes:
+      - ./telemetry/otelcol-config.yml:/etc/otelcol-config.yml
+      - ./telemetry/otelcol-config-extras.yml:/etc/otelcol-config-extras.yml
+    ports:
+      - 4317:4317
+      - 4318:4318
+    depends_on:
+      - jaeger
+
+  prometheus:
+    image: quay.io/prometheus/prometheus:v2.50.1
+    command:
+      - --web.console.templates=/etc/prometheus/consoles
+      - --web.console.libraries=/etc/prometheus/console_libraries
+      - --storage.tsdb.retention.time=1h
+      - --config.file=/etc/prometheus/prometheus-config.yaml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+      - --web.route-prefix=/
+      - --enable-feature=exemplar-storage
+      - --enable-feature=otlp-write-receiver
+    volumes:
+      - ./telemetry/prometheus-config.yaml:/etc/prometheus/prometheus-config.yaml
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+    restart: unless-stopped
+    ports:
+      - 9090:9090
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    command:
+      - "--memory.max-traces=5000"
+      - "--query.base-path=/jaeger/ui"
+      - "--prometheus.server-url=http://prometheus:9090"
+      - "--prometheus.query.normalize-calls=true"
+      - "--prometheus.query.normalize-duration=true"
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+    restart: unless-stopped
+    ports:
+      - 16686:16686        # Jaeger UI
+      - 4317          # OpenTelemetry Collector gRPC
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+
+  opensearch:
+    image: opensearchproject/opensearch:2.12.0
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    restart: unless-stopped
+    environment:
+      - cluster.name=demo-cluster
+      - node.name=demo-node
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - OPENSEARCH_JAVA_OPTS=-Xms300m -Xmx300m
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"

@@ -10,7 +10,8 @@ using api.Models.Contracts;
 using api.Repositories;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.Net.Http.Headers;
-
+using OpenTelemetry.Trace;
+using OpenTelemetry.Resources;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -19,7 +20,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
- 
+
 //Starting
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -65,6 +66,25 @@ builder.Services.AddSwaggerGen(options =>
 
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
+
+
+builder.Services.AddOpenTelemetryTracing(budiler =>
+    {
+        budiler
+            .AddAspNetCoreInstrumentation(opt =>
+        {
+            opt.RecordException = true;
+        })
+            .SetResourceBuilder(ResourceBuilder.CreateDefault()
+                .AddService("Patient Inc.")
+                .AddTelemetrySdk()
+            ).SetErrorStatusOnException(true)
+            .AddOtlpExporter(options =>
+            {
+                options.Endpoint = new Uri("http://localhost:4317"); // Signoz Endpoint
+            });
+    });
+
 builder.Services.AddScoped<IUserAuth, AuthRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 //Ending...
@@ -77,7 +97,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseCors(policy =>
     {
-        policy.WithOrigins("http://localhost:7254", "https://localhost:7254","http://localhost:5173")
+        policy.WithOrigins("http://localhost:7254", "https://localhost:7254", "http://localhost:5173")
         .AllowAnyMethod()
         .AllowAnyHeader()
         .WithHeaders(HeaderNames.ContentType);
