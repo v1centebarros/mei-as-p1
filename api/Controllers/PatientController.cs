@@ -99,5 +99,12 @@ namespace api.Controllers
 
             return Ok(NewPatient);
         }
+
+        [HttpGet("/error")]
+        public IActionResult Error()
+        {
+            _logger.LogError("Error method called.");
+            throw new Exception("This is a test exception.");
+        }
     }
 }
